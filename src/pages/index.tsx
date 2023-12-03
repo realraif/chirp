@@ -6,11 +6,23 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
 import { LoadingPage } from "~/components/loader";
+import { useState } from "react";
 
 dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
   const { user } = useUser();
+  const [input, setInput] = useState("");
+
+  const ctx = api.useUtils();
+
+  const { mutate: createPost, isLoading: isPosting } =
+    api.posts.create.useMutation({
+      onSuccess: () => {
+        setInput("");
+        ctx.posts.getAll.invalidate();
+      }
+    });
 
   if (!user) return null;
 
@@ -26,7 +38,12 @@ const CreatePostWizard = () => {
       <input
         className="ml-4 grow bg-transparent outline-none"
         placeholder="Type some emogis!"
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        disabled={isPosting}
       />
+      <button onClick={() => createPost({ content: input })}>Post</button>
     </div>
   );
 };
@@ -71,7 +88,7 @@ const Feed = () => {
 };
 
 export default function Home() {
-  const {isLoaded: isUserLoaded, isSignedIn} = useUser();
+  const { isLoaded: isUserLoaded, isSignedIn } = useUser();
   // fetch data to cache
   api.posts.getAll.useQuery();
   if (!isUserLoaded) return <div />;
