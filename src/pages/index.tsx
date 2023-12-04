@@ -5,8 +5,9 @@ import { SignInButton, useUser, SignOutButton } from "@clerk/nextjs";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
-import { LoadingPage } from "~/components/loader";
+import { LoadingPage, LoadingSpinner } from "~/components/loader";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 dayjs.extend(relativeTime);
 
@@ -21,7 +22,12 @@ const CreatePostWizard = () => {
       onSuccess: () => {
         setInput("");
         ctx.posts.getAll.invalidate();
-      }
+      },
+      onError: (err) => {
+        const stringMessage = err.data?.zodError?.fieldErrors?.content || [];
+        const errorMessage = stringMessage[0] || "Something went wrong";
+        toast.error(errorMessage);
+      },
     });
 
   if (!user) return null;
@@ -41,9 +47,28 @@ const CreatePostWizard = () => {
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (input === "") return;
+            createPost({ content: input });
+          }
+        }}
         disabled={isPosting}
       />
-      <button onClick={() => createPost({ content: input })}>Post</button>
+      {input !== "" && !isPosting && (
+        <button
+          onClick={() => createPost({ content: input })}
+          disabled={isPosting}
+        >
+          Post
+        </button>
+      )}
+      {isPosting && (
+        <div className="flex items-center justify-center">
+          <LoadingSpinner size={20} />
+        </div>
+      )}
     </div>
   );
 };
