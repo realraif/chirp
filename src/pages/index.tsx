@@ -15,13 +15,13 @@ const CreatePostWizard = () => {
 
   const { mutate: createPost, isLoading: isPosting } =
     api.posts.create.useMutation({
-      onSuccess: () => {
+      onSuccess: async () => {
         setInput("");
-        ctx.posts.getAll.invalidate();
+        await ctx.posts.getAll.invalidate();
       },
       onError: (err) => {
-        const stringMessage = err.data?.zodError?.fieldErrors?.content || [];
-        const errorMessage = stringMessage[0] || "Something went wrong";
+        const stringMessage = err.data?.zodError?.fieldErrors?.content ?? [];
+        const errorMessage = stringMessage[0] ?? "Something went wrong";
         toast.error(errorMessage);
       },
     });
