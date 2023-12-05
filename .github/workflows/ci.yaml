@@ -23,7 +23,7 @@ jobs:
       run: pnpm install
 
     - name: Run TypeScript type checking
-      run: pnpm run type-check
+      run: pnpm run typecheck
 
     - name: Run Lint
       run: pnpm run lint
